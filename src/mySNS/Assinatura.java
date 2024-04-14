@@ -11,9 +11,8 @@ import java.security.cert.CertificateException;
 
 public class Assinatura {
 
-	public static void assinar(String user, File inputFile, File outputFile)   {
+	public static void assinar(String user, File inputFile, File outputFile, String passwrd)   {
 		try {
-			String passwrd = "123456";
 		    FileInputStream fis = new FileInputStream(inputFile);
 		    FileOutputStream sfos = new FileOutputStream(outputFile);
 		    

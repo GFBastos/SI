@@ -48,6 +48,7 @@ public class mySNSClient {
         String utentUsername = null;
         String[] fileNames = null;
         String action = null;
+        String password = null;
         
         switch (args[2]){
         	case "-m":
@@ -91,13 +92,49 @@ public class mySNSClient {
         			System.err.println("Error reading response: " + e.getMessage());
         		}
         		  break;
-
+        	case "-au":
+        		try {
+        			String newUsername = args[3];
+        			String newUserPass = args[4];
+        			String newUserCertificateName = args[5];
+        			action = "-au";
+        			out.writeObject(action);
+        			System.out.println("SENT: -au");
+        			
+        			String response4 = (String) in.readObject();
+        		    System.out.println("RECV: " + response4);
+        		    
+        		    //Send the username
+        		    out.writeObject(newUsername);
+        			System.out.println("SENT: username " + newUsername);
+        			
+        			String response5 = (String) in.readObject();
+        		    System.out.println("RECV: " + response5);
+        		    
+        		    //Send the password
+        		    out.writeObject(newUserPass);
+        			System.out.println("SENT: username " + newUserPass);
+        			
+        			String response6 = (String) in.readObject();
+        		    System.out.println("RECV: " + response6);
+        		    
+        		    //Send the certificate
+        		    
+        		}catch(IOException e) {
+        			System.err.println("Error communicating with server: " + e.getMessage());
+        		} catch (ClassNotFoundException e) {
+        			System.err.println("Error reading response: " + e.getMessage());
+				}
         }
-        
-        switch (args[4]){
+        if(args[4].equals("-p")) {
+				password = args[5];
+        }else {
+        	System.err.println("Password was not provided");
+        }
+        switch (args[6]){
         	case "-u":
         		try {
-	        	    utentUsername = args[5]; // Accessing args[5] instead of args[3]
+	        	    utentUsername = args[7]; 
 	        	    out.writeObject("-u");
 	        	    System.out.println("SENT: -u");
 	
@@ -125,8 +162,8 @@ public class mySNSClient {
         		    String response3 = (String) in.readObject();
         		    System.out.println("RECV: " + response3);
 
-        		    out.writeObject(action); // Sending action again (assuming intended behavior)
-        		    System.out.println("SENT: action"); // Sending action again (assuming intended behavior)
+//        		    out.writeObject(action); // Sending action again (assuming intended behavior)
+//        		    System.out.println("SENT: action"); // Sending action again (assuming intended behavior)
 
         		    String response4 = (String) in.readObject();
         		    System.out.println("RECV: " + response4);
@@ -142,14 +179,14 @@ public class mySNSClient {
         
         if (args.length > 7) {
         	try {
-        		  action = args[6]; // Assuming args[6] contains the desired action string
+        		  action = args[8]; 
         		  out.writeObject(action);
         		  System.out.println("SENT: action");
 
         		  String response1 = (String) in.readObject();
         		  System.out.println("RECV: " + response1);
 
-        		  fileNames = Arrays.copyOfRange(args, 7, args.length);
+        		  fileNames = Arrays.copyOfRange(args, 9, args.length);
     		} catch (IOException e) {
     		  System.err.println("Error communicating with server: " + e.getMessage());
     		} catch (ClassNotFoundException e) {
@@ -165,11 +202,11 @@ public class mySNSClient {
         for (String fileName : fileNames) {
         	File file = new File(fileName);
            
-            if (!file.exists()) {
+            if (!file.exists() && !action.equals("-g")) {
                 System.err.println("Error: File " + fileName + " not found!");
+            }else {
+            	fileList.add(file);
             }
-            
-            fileList.add(file);
         }
         
         
@@ -212,7 +249,7 @@ public class mySNSClient {
         	switch (action) {
         		case "-sc":
         			try {
-            			byte[] encryptedBuffer = CifraHibrida.encrypt(medicUsername, file, utentUsername, ".cifrado"); 
+            			byte[] encryptedBuffer = CifraHibrida.encrypt(medicUsername, file, utentUsername, ".cifrado", password); 
                         out.write(encryptedBuffer);
                         out.flush();
                         System.out.println("SENT: Hybrid encrypted Key ");
@@ -250,7 +287,7 @@ public class mySNSClient {
         		case "-sa":
         			try {
 	        			File outputFile = new File(file.getName() + ".assinatura." + medicUsername);
-	        			Assinatura.assinar(utentUsername, file, outputFile);
+	        			Assinatura.assinar(utentUsername, file, outputFile, password);
 	        			FileInputStream Fis = new FileInputStream(outputFile);
 	        			FileInputStream Sig = new FileInputStream(file);
 	        			
@@ -301,7 +338,7 @@ public class mySNSClient {
         		case "-se":
         			try {
 	        			File outputFile2 = new File(file.getName() + ".assinatura." + medicUsername + ".seguro");
-	        			Assinatura.assinar(utentUsername, file, outputFile2);
+	        			Assinatura.assinar(utentUsername, file, outputFile2, password);
 	        			
 	        			long fileSize4 = outputFile2.length();
 	        			out.writeObject(fileSize4); 
@@ -313,7 +350,7 @@ public class mySNSClient {
 	        			
 	        			File encryptedFile = new File(file.getName() + ".seguro");
 	        			
-	        			byte[] encryptedKey = CifraHibrida.encrypt(medicUsername, file, utentUsername, ".seguro");
+	        			byte[] encryptedKey = CifraHibrida.encrypt(medicUsername, file, utentUsername, ".seguro", password);
 	        			
 	        			long fileSize5 = encryptedFile.length();
 	        			System.out.println(fileSize5);

@@ -24,12 +24,12 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class CifraHibrida {
 
-    public static  byte[] encrypt(String medic, File file, String alias, String extension) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException{
+    public static  byte[] encrypt(String medic, File file, String alias, String extension, String password) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException{
     	try {
 
 	    	FileInputStream kis = new FileInputStream("../Medicos/" + medic + ".keystore.jks");
 		    KeyStore kstore = KeyStore.getInstance("PKCS12");
-		    kstore.load(kis, "123456".toCharArray());
+		    kstore.load(kis, password.toCharArray());
 		    
 		    Certificate myCertificate = kstore.getCertificate(alias);
 		    PublicKey pubK = myCertificate.getPublicKey();

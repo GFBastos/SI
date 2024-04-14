@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -77,22 +78,94 @@ public class mySNSServer {
 			    // Handle the action based on the flag
 			    switch (actionFlag) {
 			    	case "-m":
+			    		
 			    		medicUsername = (String) inStream.readObject();
 			    		System.out.println("RECV: medic username - " + medicUsername);
-			    		// Handle medic username here
 			        
 			    		outStream.writeObject("medic username - " + medicUsername + " received");
 			    		System.out.println("SENT: medic username - " + medicUsername + " received");
 			    		break;
+			    		
 			    	case "-u":
+			    		
 			    		utentUsername = (String) inStream.readObject();
 			    		System.out.println("RECV: utent username - " + utentUsername);
-			    		// Handle utent username here
 					
 			    		outStream.writeObject("utent username - " + utentUsername + " received");
 			    		System.out.println("SENT: utent username - " + utentUsername + " received");
 					    break;
-					  // Add additional cases for other action flags if needed
+					    
+			    	case "-au":
+			    		try {
+			    			
+				    		//New user name
+				    		String newUsername = (String) inStream.readObject();
+				    		System.out.println("RECV: username - " + newUsername);
+						
+				    		outStream.writeObject("username - " + newUsername + " received");
+				    		System.out.println("SENT: username - " + newUsername + " received");
+				    		
+				    		Boolean found = usersPage.getInstance().checkName(newUsername);
+				    		
+				    		if(!found) {
+					    		//New user password
+					    		String newUserPass = (String) inStream.readObject();
+					    		System.out.println("RECV: password");
+							
+					    		outStream.writeObject("password received");
+					    		System.out.println("SENT: password received");
+					    		
+					    		//New user folder
+					    		File directory = new File("utilizadores/" +  newUsername);
+								directory.mkdir();
+								System.out.println(String.format("New file for user %n created", newUsername));
+								
+								//New user certificate
+								File cert = new File("utilizadores/" +  newUsername + "/" + newUsername + ".certificate");
+					    		FileOutputStream cos = new FileOutputStream(cert);
+					    		
+					    		Long certificateSize = (Long) inStream.readObject();
+							    System.out.println("RECV: Certificate size");
+							      
+								outStream.writeObject("Certificate size received");
+								System.out.println("SENT: Certificate size received");
+					    		
+								byte[] buffer = new byte[1024];
+							    int fstBytesRead;
+								
+					    		long totalBytesRead1 = 0;  
+					    		
+							    while (totalBytesRead1 < certificateSize) {
+							    	fstBytesRead = inStream.read(buffer, 0, (int) Math.min(buffer.length, certificateSize - totalBytesRead1));
+							    	if (fstBytesRead > 0) {
+								        cos.write(buffer, 0, fstBytesRead);
+								        cos.flush();
+								        totalBytesRead1 += fstBytesRead;
+								    } else {
+								        break; 
+								    }
+								}
+							    
+							    cos.close();
+							    
+							    System.out.println("RECV: Encrypted file");
+							    
+							    outStream.writeObject("File received");
+							    System.out.println("SENT: File received");
+					    		
+							    //Create new user
+								usersPage.getInstance().newUser(newUsername, newUserPass);
+							    
+				    		}else {
+								System.err.println("User with same username already exists!");
+							}
+			    		}catch(IOException e) {
+			    			//TODO
+			    		} catch (NoSuchAlgorithmException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					    break;
 		    	}
 			    
 			    String actionFlag2 = (String) inStream.readObject();
@@ -353,8 +426,11 @@ public class mySNSServer {
 				    			
 				    		case "assinado":
 				    			try {
+				    				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				    				//TODO
 					    			File certificate = new File("Utilizadores/" + utentUsername + "/a.txt.assinatura.silva");
 					    			File content = new File("Utilizadores/" + utentUsername + "/a.txt.assinado");
+					    			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					    			Boolean result = Assinatura.verificar(content, certificate, utentUsername);
 																		
 									outStream.writeObject(result);
