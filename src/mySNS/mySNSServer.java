@@ -65,6 +65,39 @@ public class mySNSServer {
 				ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
 				
+				File usersFile = new File("users.txt");
+				if(!usersFile.exists()) {
+					try {
+					outStream.writeObject(false);
+					System.out.println("SENT: false");
+					
+					String response = (String) inStream.readObject();
+	    		    System.out.println("RECV: " + response);
+	    		    
+					usersPage users = usersPage.getInstance();
+					
+					String adminPassword = (String) inStream.readObject();
+				    System.out.println("RECV: admin password");
+				    
+					outStream.writeObject("admin password received");
+					System.out.println("SENT: admin password received");
+					
+					users.newUser("admin", adminPassword);
+					}catch(IOException e) {
+						System.err.println("Error communicating with server: " + e.getMessage());
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}else {
+					outStream.writeObject(true);
+					System.out.println("SENT: true");
+					
+					String response = (String) inStream.readObject();
+	    		    System.out.println("RECV: " + response);
+				}
+				
+				
 				String actionFlag = (String) inStream.readObject();
 			    System.out.println("RECV: action flag " + actionFlag);
 			    
@@ -73,7 +106,9 @@ public class mySNSServer {
 			    
 			    String action = null;
 			    String utentUsername = null;
+			    String utentPassword = null;
 			    String medicUsername = null;
+			    
 
 			    // Handle the action based on the flag
 			    switch (actionFlag) {
@@ -160,13 +195,19 @@ public class mySNSServer {
 								System.err.println("User with same username already exists!");
 							}
 			    		}catch(IOException e) {
-			    			//TODO
+			    			System.err.println("Error communicating with server: " + e.getMessage());
 			    		} catch (NoSuchAlgorithmException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					    break;
 		    	}
+			    
+			    utentPassword = (String) inStream.readObject();
+			    System.out.println("RECV: utent password");
+			    
+				outStream.writeObject("utent password received");
+				System.out.println("SENT: utent password received");
 			    
 			    String actionFlag2 = (String) inStream.readObject();
 			    System.out.println("RECV: action flag " + actionFlag2);
@@ -183,11 +224,12 @@ public class mySNSServer {
 			    		System.out.println("SENT: utent username - " + utentUsername + " received");
 			    		break;
 			    	case "-g":
-			    		action = (String) inStream.readObject();
-			    		System.out.println("RECV: action - " + action);
-			    		// Handle utent username here
-						outStream.writeObject("action " + action + " received");
-						System.out.println("SENT: action " + action + " received");
+			    		action = "-g";
+//			    		action = (String) inStream.readObject();
+//			    		System.out.println("RECV: action - " + action);
+//			    		// Handle utent username here
+//						outStream.writeObject("action " + action + " received");
+//						System.out.println("SENT: action " + action + " received");
 			    		break;
 			    }
 			    
@@ -205,7 +247,20 @@ public class mySNSServer {
 				outStream.writeObject("File number received");
 				System.out.println("SENT: File number received");
 				
-	    		
+	    		//Authenticate user
+				try {
+					Boolean userAuthenticated = usersPage.getInstance().authenticate(utentUsername, utentPassword);
+					
+					outStream.writeObject(userAuthenticated);
+					System.out.println("SENT: user authentication");
+					
+					String response = (String) inStream.readObject();
+					System.out.println("RECV: " + response);
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 				for (int i = 0; i < numFiles; i++) {
 					byte[] buf = new byte[1024];
 				    int bytesRead;

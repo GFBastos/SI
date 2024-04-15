@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -21,7 +22,7 @@ import javax.crypto.NoSuchPaddingException;
 
 public class mySNSClient {
 
-    public static void main(String[] args) throws InvalidKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException {
+    public static void main(String[] args) throws InvalidKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, ClassNotFoundException {
         Socket socket = null;
 		try {
 			socket = new Socket(args[1], 23456);
@@ -43,6 +44,33 @@ public class mySNSClient {
 		} catch (IOException e) {
 			System.err.println("Error communicating with server: " + e.getMessage());
 		}
+		try {
+			Boolean existsUsersFile = (Boolean) in.readObject();
+			System.out.println("RECV: " + existsUsersFile);
+			
+			out.writeObject("received about users file");
+		    System.out.println("SENT: received about users file");
+			
+			if(!existsUsersFile) {
+				
+				Scanner scanner = new Scanner(System.in);
+				System.out.print("Enter new admin password: ");
+				String password = scanner.nextLine();
+				
+				out.writeObject(password);
+    		    System.out.println("SENT: password");
+
+    		    String response = (String) in.readObject();
+    		    System.out.println("RECV: " + response);
+			}
+		}catch(IOException e) {
+			System.err.println("Error communicating with server: " + e.getMessage());
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
         
         String medicUsername = null;
         String utentUsername = null;
@@ -127,7 +155,17 @@ public class mySNSClient {
 				}
         }
         if(args[4].equals("-p")) {
-				password = args[5];
+        	try {
+        		password = args[5];
+				out.writeObject(password);
+    			System.out.println("SENT: password");
+    			
+    			String response6 = (String) in.readObject();
+    		    System.out.println("RECV: " + response6);
+        	}catch(IOException e) {
+        		System.err.println("Error communicating with server: " + e.getMessage());
+        	}
+				
         }else {
         	System.err.println("Password was not provided");
         }
@@ -165,10 +203,10 @@ public class mySNSClient {
 //        		    out.writeObject(action); // Sending action again (assuming intended behavior)
 //        		    System.out.println("SENT: action"); // Sending action again (assuming intended behavior)
 
-        		    String response4 = (String) in.readObject();
-        		    System.out.println("RECV: " + response4);
+//        		    String response4 = (String) in.readObject();
+//        		    System.out.println("RECV: " + response4);
 
-        		    fileNames = Arrays.copyOfRange(args, 5, args.length);
+        		    fileNames = Arrays.copyOfRange(args, 7, args.length);
         		} catch (IOException e) {
         		    System.err.println("Error communicating with server: " + e.getMessage());
         		} catch (ClassNotFoundException e) {
@@ -177,7 +215,7 @@ public class mySNSClient {
         		break;
         	}
         
-        if (args.length > 7) {
+        if (!action.equals("-g")) {
         	try {
         		  action = args[8]; 
         		  out.writeObject(action);
@@ -198,12 +236,13 @@ public class mySNSClient {
         
         ArrayList<File> fileList = new ArrayList<File>();
     
-        
         for (String fileName : fileNames) {
         	File file = new File(fileName);
            
             if (!file.exists() && !action.equals("-g")) {
                 System.err.println("Error: File " + fileName + " not found!");
+            }else if(file.exists() && action.equals("-g")){
+            	System.err.println("Error: File " + fileName + " already exists in the client side!");
             }else {
             	fileList.add(file);
             }
@@ -222,7 +261,18 @@ public class mySNSClient {
     	} catch (ClassNotFoundException e) {
     		System.err.println("Class not found: " + e.getMessage());
 		}
-
+        
+        //User authentication
+        try {
+        Boolean userAuthenticated = (Boolean) in.readObject();
+        System.out.println("RECV: " + userAuthenticated);
+        
+        out.writeObject("user authentication received");
+        System.out.println("SENT: user authentication received");
+        System.out.println(userAuthenticated);
+        }catch(IOException e) {
+        	System.err.println("Error communicating with server: " + e.getMessage());
+        }
         
         for (File file :fileList) {
         	

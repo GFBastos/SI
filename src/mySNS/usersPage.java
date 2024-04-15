@@ -45,7 +45,7 @@ public class usersPage {
             usersList.write(line);
             usersList.newLine(); 
 			usersList.close();
-			System.out.println(String.format("%u written to the users file successfully.", name));
+			System.out.println(name + " written to the users file successfully.");
 		}catch(IOException e) {
 			System.err.println(e);
 		}
@@ -78,11 +78,11 @@ public class usersPage {
 		//TODO
 	}
 	
-	public Boolean autenticate(String name, String password) throws NoSuchAlgorithmException {
+	public Boolean authenticate(String name, String password) throws NoSuchAlgorithmException {
 		try (Scanner scanner = new Scanner(this.users)) {
 		      while (scanner.hasNextLine()) {
 		        String line = scanner.nextLine();
-		        String[] currentLine = line.split("//;");
+		        String[] currentLine = line.split(";");
 		        String currentLineName = currentLine[0];
 		        String currentLineSalt = currentLine[1];
 		        String currentLinePassword = currentLine[2];
