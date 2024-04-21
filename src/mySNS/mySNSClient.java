@@ -15,6 +15,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.io.FileNotFoundException;
 
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -123,8 +124,8 @@ public class mySNSClient {
         	case "-au":
         		try {
         			String newUsername = args[3];
-        			String newUserPass = args[4];
-        			String newUserCertificateName = args[5];
+        			String newUserPass = args[5];
+        			
         			action = "-au";
         			out.writeObject(action);
         			System.out.println("SENT: -au");
@@ -139,14 +140,6 @@ public class mySNSClient {
         			String response5 = (String) in.readObject();
         		    System.out.println("RECV: " + response5);
         		    
-        		    //Send the password
-        		    out.writeObject(newUserPass);
-        			System.out.println("SENT: username " + newUserPass);
-        			
-        			String response6 = (String) in.readObject();
-        		    System.out.println("RECV: " + response6);
-        		    
-        		    //Send the certificate
         		    
         		}catch(IOException e) {
         			System.err.println("Error communicating with server: " + e.getMessage());
@@ -215,7 +208,7 @@ public class mySNSClient {
         		break;
         	}
         
-        if (!action.equals("-g")) {
+        if (!action.equals("-g") && !action.equals("-au")) {
         	try {
         		  action = args[8]; 
         		  out.writeObject(action);
@@ -231,6 +224,10 @@ public class mySNSClient {
     		  System.err.println("Error reading response: " + e.getMessage());
     		}
         		
+        }
+        
+        if(action.equals("-au")) {
+        	fileNames = Arrays.copyOfRange(args, 6, args.length);
         }
         
         
@@ -263,19 +260,20 @@ public class mySNSClient {
 		}
         
         //User authentication
-        try {
-        Boolean userAuthenticated = (Boolean) in.readObject();
-        System.out.println("RECV: " + userAuthenticated);
-        
-        out.writeObject("user authentication received");
-        System.out.println("SENT: user authentication received");
-        System.out.println(userAuthenticated);
-        }catch(IOException e) {
-        	System.err.println("Error communicating with server: " + e.getMessage());
+        if(!action.equals("-au")) {
+	        try {
+	        Boolean userAuthenticated = (Boolean) in.readObject();
+	        System.out.println("RECV: " + userAuthenticated);
+	        
+	        out.writeObject("user authentication received");
+	        System.out.println("SENT: user authentication received");
+	        System.out.println(userAuthenticated);
+	        }catch(IOException e) {
+	        	System.err.println("Error communicating with server: " + e.getMessage());
+	        }
         }
         
         for (File file :fileList) {
-        	
         	try {
         		  String fileName = file.getName();
         		  out.writeObject(fileName);
@@ -445,19 +443,24 @@ public class mySNSClient {
         			break;
         		case "-g":
         			try {
-	        			String[] fileState = file.getName().split("\\.");
-			    		if(fileState[fileState.length - 1].equals("assinado") || fileState[fileState.length - 1].equals("seguro")) {
-	        	            Boolean response14 = (Boolean) in.readObject();
-	        	            System.out.println("RECV: " + response14);
+        				String response14 = (String) in.readObject();
+        	            System.out.println("RECV: " + response14);
+        	            
+        	            if(response14.equals("")) {
+        	            	System.out.println("File with name " + file.getName() + " not found");
+        	            }
+        	            
+        	            else if (response14.equals("assinado") || response14.equals("seguro")) {
+	        	            Boolean response15 = (Boolean) in.readObject();
+	        	            System.out.println("RECV: " + response15);
 	        	        }
-			    		else if(fileState[fileState.length - 1].equals("cifrado")) {
+      
+			    		else if(response14.equals("cifrado")) {
 			    			byte[] buf = new byte[1024];
-			    			
-			    			File file2 = new File(fileState[0] + "." + fileState[1]);
-			    			
+			    						    			
 			    			FileOutputStream fos = null;
 							try {
-								fos = new FileOutputStream(file2);
+								fos = new FileOutputStream(file);
 							} catch (IOException e) {
 								System.err.println("Error communicating with server: " + e.getMessage());
 							}
@@ -499,7 +502,38 @@ public class mySNSClient {
         				System.err.println("Error class now found: " + e.getMessage());
 					}
         			break;
+        		case "-au":
+        			try {
+                    	
+                    	if (file.exists()) {
+                    		FileInputStream certStream = new FileInputStream(file);
+                    		
+                        	out.writeObject(file.length());
+                      	  	out.flush();
+                      	  	System.out.println("SENT: " + file.length() + " as certificate size");
 
+                      	  	String response1 = (String) in.readObject();
+                      	  	System.out.println("RECV: " + response1);
+                      	  	
+                      	  	
+                      	  	
+                      	  	while  ((bytesRead = certStream.read(buffer)) > 0) {
+                              out.write(buffer, 0, bytesRead);
+                              out.flush();
+                      	  	}
+                      	  	System.out.println("SENT: Certificate ");
+              				String response11 = (String) in.readObject();
+              			
+              				System.out.println("RECV: " + response11);
+              				certStream.close();
+                    	}
+                    	else {
+                    		throw new FileNotFoundException("File not found: " + file.getName());
+                    	}
+                	}catch(IOException e) {
+                		//TODO
+                		System.err.println(e);
+                	}
         	}
     	}
         try {

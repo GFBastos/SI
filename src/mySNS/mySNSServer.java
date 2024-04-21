@@ -140,80 +140,30 @@ public class mySNSServer {
 				    		outStream.writeObject("username - " + newUsername + " received");
 				    		System.out.println("SENT: username - " + newUsername + " received");
 				    		
-				    		Boolean found = usersPage.getInstance().checkName(newUsername);
 				    		
-				    		if(!found) {
-					    		//New user password
-					    		String newUserPass = (String) inStream.readObject();
-					    		System.out.println("RECV: password");
-							
-					    		outStream.writeObject("password received");
-					    		System.out.println("SENT: password received");
-					    		
-					    		//New user folder
-					    		File directory = new File("utilizadores/" +  newUsername);
-								directory.mkdir();
-								System.out.println(String.format("New file for user %n created", newUsername));
-								
-								//New user certificate
-								File cert = new File("utilizadores/" +  newUsername + "/" + newUsername + ".certificate");
-					    		FileOutputStream cos = new FileOutputStream(cert);
-					    		
-					    		Long certificateSize = (Long) inStream.readObject();
-							    System.out.println("RECV: Certificate size");
-							      
-								outStream.writeObject("Certificate size received");
-								System.out.println("SENT: Certificate size received");
-					    		
-								byte[] buffer = new byte[1024];
-							    int fstBytesRead;
-								
-					    		long totalBytesRead1 = 0;  
-					    		
-							    while (totalBytesRead1 < certificateSize) {
-							    	fstBytesRead = inStream.read(buffer, 0, (int) Math.min(buffer.length, certificateSize - totalBytesRead1));
-							    	if (fstBytesRead > 0) {
-								        cos.write(buffer, 0, fstBytesRead);
-								        cos.flush();
-								        totalBytesRead1 += fstBytesRead;
-								    } else {
-								        break; 
-								    }
-								}
-							    
-							    cos.close();
-							    
-							    System.out.println("RECV: Encrypted file");
-							    
-							    outStream.writeObject("File received");
-							    System.out.println("SENT: File received");
-					    		
-							    //Create new user
-								usersPage.getInstance().newUser(newUsername, newUserPass);
-							    
-				    		}else {
-								System.err.println("User with same username already exists!");
-							}
 			    		}catch(IOException e) {
 			    			System.err.println("Error communicating with server: " + e.getMessage());
-			    		} catch (NoSuchAlgorithmException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+			    		
 					    break;
-		    	}
-			    
+			    		}
+			    }
 			    utentPassword = (String) inStream.readObject();
 			    System.out.println("RECV: utent password");
 			    
 				outStream.writeObject("utent password received");
 				System.out.println("SENT: utent password received");
 			    
-			    String actionFlag2 = (String) inStream.readObject();
-			    System.out.println("RECV: action flag " + actionFlag2);
+				String actionFlag2 = null;
+				if(!actionFlag.equals("-au")){
+					actionFlag2 = (String) inStream.readObject();
+				    System.out.println("RECV: action flag " + actionFlag2);
+				    
+					outStream.writeObject("action flag " + actionFlag2 + " received");
+					System.out.println("SENT: action flag " + actionFlag2 + " received");
+				}else {
+					actionFlag2 = "-au";
+				}
 			    
-				outStream.writeObject("action flag " + actionFlag2 + " received");
-				System.out.println("SENT: action flag " + actionFlag2 + " received");
 			    // Handle the action based on the flag
 				switch (actionFlag2) {
 			    	case "-u":
@@ -240,6 +190,9 @@ public class mySNSServer {
 					outStream.writeObject("action " + action + " received");
 					System.out.println("SENT: action " + action + " received");
 			    }
+			    else if(actionFlag2.equals("-au")) {
+			    	action = "-au";
+			    }
 			    
 				int numFiles = (int) inStream.readObject();
 				System.out.println("RECV: Number of files");
@@ -248,23 +201,24 @@ public class mySNSServer {
 				System.out.println("SENT: File number received");
 				
 	    		//Authenticate user
-				try {
-					Boolean userAuthenticated = usersPage.getInstance().authenticate(utentUsername, utentPassword);
-					
-					outStream.writeObject(userAuthenticated);
-					System.out.println("SENT: user authentication");
-					
-					String response = (String) inStream.readObject();
-					System.out.println("RECV: " + response);
-				} catch (NoSuchAlgorithmException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if(!actionFlag2.equals("-au")) {
+					try {
+						Boolean userAuthenticated = usersPage.getInstance().authenticate(utentUsername, utentPassword);
+						
+						outStream.writeObject(userAuthenticated);
+						System.out.println("SENT: user authentication");
+						
+						String response = (String) inStream.readObject();
+						System.out.println("RECV: " + response);
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				
 				for (int i = 0; i < numFiles; i++) {
 					byte[] buf = new byte[1024];
 				    int bytesRead;
-					
 				    String fileName = (String) inStream.readObject();
 				    System.out.println("RECV: File name");
 					    
@@ -435,22 +389,44 @@ public class mySNSServer {
 				    		break;
 				    		
 				    	case "-g":
-				    		String[] fileState = fileName.split("\\.");
-				    		switch(fileState[fileState.length - 1]) {
+				    		
+				    		File encodedFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".cifrado");
+				    		File certificate = new File("Utilizadores/" + utentUsername + "/" + fileName + ".assinatura." + medicUsername);
+			    			File content = new File("Utilizadores/" + utentUsername + "/" + fileName + ".assinado");
+			    			File safeFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".seguro");
+			    			File keyFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".chave_secreta." + utentUsername);
+			    			
+			    			String request = null;
+
+			    			if(encodedFile.exists() && keyFile.exists()) {
+				    			outStream.writeObject("cifrado");
+				    			request = "cifrado";
+			    			}
+				    		else if(certificate.exists() && content.exists()) {
+				    			outStream.writeObject("assinado");
+				    			request = "assinado";
+				    		}
+		    				else if(safeFile.exists() && keyFile.exists()) {
+		    					outStream.writeObject("seguro");
+		    					request = "seguro";
+		    				}else {
+		    					outStream.writeObject("");
+		    				}
+				    	
+				    		
+				    		switch(request) {
 				    		
 				    		case "cifrado":
-				    			
 				    			try {
-				    				String requestedFileName = fileState[0] + "." + fileState[1];
-					    			File keyFile = new File("Utilizadores/" + utentUsername + "/" + requestedFileName + ".chave_secreta." + utentUsername);
+					    			
 					    			FileInputStream kfis = new FileInputStream(keyFile);
 					    			byte[] encodedKeyBytes = new byte[(int) keyFile.length()]; 
 					    			kfis.read(encodedKeyBytes);
 					    			kfis.close();
 					    			
-									CifraHibrida.decrypt(utentUsername, "123456", fileName, encodedKeyBytes);
+									CifraHibrida.decrypt(utentUsername, "123456", fileName + ".cifrado", encodedKeyBytes);
 									
-									File fileToSend = new File("decrypted_" + requestedFileName);
+									File fileToSend = new File("decrypted_" + fileName);
 									FileInputStream fis2 = new FileInputStream(fileToSend);
 									
 					    			long fileSize5 = fileToSend.length();
@@ -481,11 +457,6 @@ public class mySNSServer {
 				    			
 				    		case "assinado":
 				    			try {
-				    				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				    				//TODO
-					    			File certificate = new File("Utilizadores/" + utentUsername + "/a.txt.assinatura.silva");
-					    			File content = new File("Utilizadores/" + utentUsername + "/a.txt.assinado");
-					    			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					    			Boolean result = Assinatura.verificar(content, certificate, utentUsername);
 																		
 									outStream.writeObject(result);
@@ -499,18 +470,13 @@ public class mySNSServer {
 				    			
 				    		case "seguro":
 				    			try {
-				    				medicUsername = fileState[fileState.length - 2];
-				    				String file = fileName.replace(".assinatura." + medicUsername,"");
-									String requestedFileName = fileState[0] + "." + fileState[1];
-									File keyFile = new File("Utilizadores/" + utentUsername + "/" + requestedFileName + ".chave_secreta." + utentUsername + ".seguro");
 					    			FileInputStream kfis = new FileInputStream(keyFile);
 					    			byte[] encodedKeyBytes = new byte[(int) keyFile.length()]; 
 					    			kfis.read(encodedKeyBytes);
 					    			kfis.close();
-									CifraHibrida.decrypt(utentUsername, "123456", file, encodedKeyBytes);
+									CifraHibrida.decrypt(utentUsername, "123456", encodedFile.getName(), encodedKeyBytes);
 									
-									File fileToSend = new File("decrypted_" + requestedFileName);
-									File certificate = new File("Utilizadores/" + utentUsername + "/" + requestedFileName + ".assinatura." + medicUsername + ".seguro");
+									File fileToSend = new File("decrypted_" + fileName);
 					    			Boolean result = Assinatura.verificar( fileToSend , certificate, utentUsername);
 																		
 									outStream.writeObject(result);
@@ -518,14 +484,70 @@ public class mySNSServer {
 									
 									break;
 								} catch (IndexOutOfBoundsException e) {
-									System.err.println("Error incorrect fil name provided: " + e.getMessage());
+									System.err.println("Error incorrect file name provided: " + e.getMessage());
 									break;
 								} 
 				    		}
 				    		break;
-				    }
-				    	
-			    }
+				    		
+				    	case "-au":
+				    		try {
+				    			Boolean found = usersPage.getInstance().checkName(utentUsername);
+					    		
+					    		if(!found) {
+						    		
+						    		//New user folder
+						    		File directory = new File("utilizadores/" +  utentUsername);
+									directory.mkdir();
+									System.out.println(String.format("New file for user %n created", utentUsername));
+						
+						    		
+								    //Create new user
+									usersPage.getInstance().newUser(utentUsername, utentPassword);
+								    
+					    		
+						    		File cert = new File("utilizadores/" +  utentUsername + "/" + utentUsername + ".certificate");
+						    		FileOutputStream cos = new FileOutputStream(cert);
+						    		
+						    		Long certificateSize = (Long) inStream.readObject();
+								    System.out.println("RECV: Certificate size");
+								      
+									outStream.writeObject("Certificate size received");
+									System.out.println("SENT: Certificate size received");
+						    		
+									byte[] buffer = new byte[1024];
+								    int fstBytesRead;
+									
+						    		long totalBytesRead5 = 0;  
+						    		
+								    while (totalBytesRead5 < certificateSize) {
+								    	fstBytesRead = inStream.read(buffer, 0, (int) Math.min(buffer.length, certificateSize - totalBytesRead5));
+								    	if (fstBytesRead > 0) {
+									        cos.write(buffer, 0, fstBytesRead);
+									        cos.flush();
+									        totalBytesRead5 += fstBytesRead;
+									    } else {
+									        break; 
+									    }
+									}
+								    cos.close();
+					    		}else {
+									System.err.println("User with same username already exists!");
+								}
+							    
+							    
+							    System.out.println("RECV: Certificate");
+							    
+							    outStream.writeObject("File received");
+							    System.out.println("SENT: File received");
+				    		
+				    		} catch (NoSuchAlgorithmException e) {
+				    			// TODO Auto-generated catch block
+				    			e.printStackTrace();
+				    		}
+						}
+				}
+			 
 				    
 				System.out.println("thread: depois de receber ficheiros");
 			}catch (ClassNotFoundException | IOException e1) {
