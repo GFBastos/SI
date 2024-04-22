@@ -19,14 +19,19 @@ import java.io.FileNotFoundException;
 
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 
 
 public class mySNSClient {
 
     public static void main(String[] args) throws InvalidKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException, NoSuchPaddingException, IllegalBlockSizeException, ClassNotFoundException {
         Socket socket = null;
+		String serverAdress =args[1];
+		int serverPort = 23456;
 		try {
-			socket = new Socket(args[1], 23456);
+			SocketFactory sf = SSLSocketFactory.getDefault();
+			socket = sf.createSocket(serverAdress, serverPort);
 		} catch (UnknownHostException e) {
 			System.err.println("Error unknown host: " + e.getMessage());
 		} catch (IOException e) {
