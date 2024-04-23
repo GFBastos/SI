@@ -297,35 +297,38 @@ public class mySNSClient {
         	switch (action) {
         		case "-sc":
         			try {
-            			byte[] encryptedBuffer = CifraHibrida.encrypt(medicUsername, file, utentUsername, ".cifrado", password); 
-                        out.write(encryptedBuffer);
-                        out.flush();
-                        System.out.println("SENT: Hybrid encrypted Key ");
-                        
-                		String response4 = (String) in.readObject();
-        			    System.out.println("RECV: " + response4);
-                        
-        			    File outputFile1 = new File(file.getName() + ".cifrado");
-        			    
-                        FileInputStream Efis = new FileInputStream(outputFile1);
-                        
-            			long fileSize1 = outputFile1.length();
-            			out.writeObject(fileSize1); 
-            			out.flush();
-            			System.out.println("SENT: File Size");
-            			String response = (String) in.readObject();
-            			
-            			System.out.println("RECV: " + response);
-                        
-                        while  ((bytesRead = Efis.read(buffer)) > 0) {
-                        	out.write(buffer, 0, bytesRead);
-                            out.flush();
-                        }
-            			Efis.close();
-            			System.out.println("SENT: Hybrid encrypted file ");
-            			
-                		String response5 = (String) in.readObject();
-        			    System.out.println("RECV: " + response5);
+        				boolean cont = (boolean) in.readObject();
+        				if(cont) {
+	            			byte[] encryptedBuffer = CifraHibrida.encrypt(medicUsername, file, utentUsername, ".cifrado", password); 
+	                        out.write(encryptedBuffer);
+	                        out.flush();
+	                        System.out.println("SENT: Hybrid encrypted Key ");
+	                        
+	                		String response4 = (String) in.readObject();
+	        			    System.out.println("RECV: " + response4);
+	                        
+	        			    File outputFile1 = new File(file.getName() + ".cifrado");
+	        			    
+	                        FileInputStream Efis = new FileInputStream(outputFile1);
+	                        
+	            			long fileSize1 = outputFile1.length();
+	            			out.writeObject(fileSize1); 
+	            			out.flush();
+	            			System.out.println("SENT: File Size");
+	            			String response = (String) in.readObject();
+	            			
+	            			System.out.println("RECV: " + response);
+	                        
+	                        while  ((bytesRead = Efis.read(buffer)) > 0) {
+	                        	out.write(buffer, 0, bytesRead);
+	                            out.flush();
+	                        }
+	            			Efis.close();
+	            			System.out.println("SENT: Hybrid encrypted file ");
+	            			
+	                		String response5 = (String) in.readObject();
+	        			    System.out.println("RECV: " + response5);
+        				}
         			} catch(IOException e) {
         				System.err.println("Error communicating with server: " + e.getMessage());
         			} catch (ClassNotFoundException e) {
@@ -334,49 +337,52 @@ public class mySNSClient {
                     break;
         		case "-sa":
         			try {
-	        			File outputFile = new File(file.getName() + ".assinatura." + medicUsername);
-	        			Assinatura.assinar(utentUsername, file, outputFile, password);
-	        			FileInputStream Fis = new FileInputStream(outputFile);
-	        			FileInputStream Sig = new FileInputStream(file);
-	        			
-	        			long fileSize2 = outputFile.length();
-	        			out.writeObject(fileSize2); 
-	        			out.flush();
-	        			System.out.println("SENT: File Size");
-	        			String response7 = (String) in.readObject();
-	        			
-	        			System.out.println("RECV: " + response7);
-	        			
-	    			    long fileSize3 = file.length();
-	    			    out.writeObject(fileSize3);
-	        			out.flush();
-	        			
-	        			System.out.println("SENT: File Size");
-	        			String response8 = (String) in.readObject();
-	        			
-	        			System.out.println("RECV: " + response8);
-	        			
-	        			while  ((bytesRead = Fis.read(buffer)) > 0) {
-	                        out.write(buffer, 0, bytesRead);
-	                        out.flush();
-	                    }
-	        			Fis.close();
-	        			
-	        			System.out.println("SENT: Signature");
-	        			String response6 = (String) in.readObject();
-	        			
-	    			    System.out.println("RECV: " + response6);
-	        			    			    
-	    			    while  ((bytesRead = Sig.read(buffer)) > 0) {
-	                        out.write(buffer, 0, bytesRead);
-	                        out.flush();
-	                    }
-	                    Sig.close();
-	                    
-	                    System.out.println("SENT: Signed file");
-	                    
-	                    String response9 = (String) in.readObject();
-	    			    System.out.println("RECV: " + response9);
+        				boolean cont = (boolean) in.readObject();
+        				if(cont) {
+		        			File outputFile = new File(file.getName() + ".assinatura." + medicUsername);
+		        			Assinatura.assinar(utentUsername, file, outputFile, password);
+		        			FileInputStream Fis = new FileInputStream(outputFile);
+		        			FileInputStream Sig = new FileInputStream(file);
+		        			
+		        			long fileSize2 = outputFile.length();
+		        			out.writeObject(fileSize2); 
+		        			out.flush();
+		        			System.out.println("SENT: File Size");
+		        			String response7 = (String) in.readObject();
+		        			
+		        			System.out.println("RECV: " + response7);
+		        			
+		    			    long fileSize3 = file.length();
+		    			    out.writeObject(fileSize3);
+		        			out.flush();
+		        			
+		        			System.out.println("SENT: File Size");
+		        			String response8 = (String) in.readObject();
+		        			
+		        			System.out.println("RECV: " + response8);
+		        			
+		        			while  ((bytesRead = Fis.read(buffer)) > 0) {
+		                        out.write(buffer, 0, bytesRead);
+		                        out.flush();
+		                    }
+		        			Fis.close();
+		        			
+		        			System.out.println("SENT: Signature");
+		        			String response6 = (String) in.readObject();
+		        			
+		    			    System.out.println("RECV: " + response6);
+		        			    			    
+		    			    while  ((bytesRead = Sig.read(buffer)) > 0) {
+		                        out.write(buffer, 0, bytesRead);
+		                        out.flush();
+		                    }
+		                    Sig.close();
+		                    
+		                    System.out.println("SENT: Signed file");
+		                    
+		                    String response9 = (String) in.readObject();
+		    			    System.out.println("RECV: " + response9);
+        				}
         			}catch(IOException e) {
         				System.err.println("Error communicating with server: " + e.getMessage());
         			} catch (ClassNotFoundException e) {
@@ -385,56 +391,59 @@ public class mySNSClient {
                     break;
         		case "-se":
         			try {
-	        			File outputFile2 = new File(file.getName() + ".assinatura." + medicUsername + ".seguro");
-	        			Assinatura.assinar(utentUsername, file, outputFile2, password);
-	        			
-	        			long fileSize4 = outputFile2.length();
-	        			out.writeObject(fileSize4); 
-	        			out.flush();
-	        			System.out.println("SENT: File Size");
-	        			String response10 = (String) in.readObject();
-	        			
-	        			System.out.println("RECV: " + response10);
-	        			
-	        			File encryptedFile = new File(file.getName() + ".seguro");
-	        			
-	        			byte[] encryptedKey = CifraHibrida.encrypt(medicUsername, file, utentUsername, ".seguro", password);
-	        			
-	        			long fileSize5 = encryptedFile.length();
-	        			System.out.println(fileSize5);
-	        			out.writeObject(fileSize5); 
-	        			out.flush();
-	        			System.out.println("SENT: File Size");
-	        			String response12 = (String) in.readObject();
-	        			
-	        			System.out.println("RECV: " + response12);
-	        			
-	        			FileInputStream encryptedSig = new FileInputStream(outputFile2);
-	                    while  ((bytesRead = encryptedSig.read(buffer)) > 0) {
-	                        out.write(buffer, 0, bytesRead);
-	                        out.flush();
-	                    }
-	                    System.out.println("SENT: Signature ");
-	        			String response11 = (String) in.readObject();
-	        			
-	        			System.out.println("RECV: " + response11);
-	        			 
-	                    
-	        			out.write(encryptedKey);
-	                    out.flush();
-	                    System.out.println("SENT: Encryption key ");
-	                    
-	        			FileInputStream Efis2 = new FileInputStream(encryptedFile);
-	                    while  ((bytesRead = Efis2.read(buffer)) > 0) {
-	                        out.write(buffer, 0, bytesRead);
-	                        out.flush();
-	                    }
-	                    System.out.println("SENT: Encrypted file ");
-	                    String response13 = (String) in.readObject();
-	        			
-	        			System.out.println("RECV: " + response13);
-	                    
-	        			Efis2.close();
+        				boolean cont = (boolean) in.readObject();
+        				if(cont) {
+		        			File outputFile2 = new File(file.getName() + ".assinatura." + medicUsername + ".seguro");
+		        			Assinatura.assinar(utentUsername, file, outputFile2, password);
+		        			
+		        			long fileSize4 = outputFile2.length();
+		        			out.writeObject(fileSize4); 
+		        			out.flush();
+		        			System.out.println("SENT: File Size");
+		        			String response10 = (String) in.readObject();
+		        			
+		        			System.out.println("RECV: " + response10);
+		        			
+		        			File encryptedFile = new File(file.getName() + ".seguro");
+		        			
+		        			byte[] encryptedKey = CifraHibrida.encrypt(medicUsername, file, utentUsername, ".seguro", password);
+		        			
+		        			long fileSize5 = encryptedFile.length();
+		        			System.out.println(fileSize5);
+		        			out.writeObject(fileSize5); 
+		        			out.flush();
+		        			System.out.println("SENT: File Size");
+		        			String response12 = (String) in.readObject();
+		        			
+		        			System.out.println("RECV: " + response12);
+		        			
+		        			FileInputStream encryptedSig = new FileInputStream(outputFile2);
+		                    while  ((bytesRead = encryptedSig.read(buffer)) > 0) {
+		                        out.write(buffer, 0, bytesRead);
+		                        out.flush();
+		                    }
+		                    System.out.println("SENT: Signature ");
+		        			String response11 = (String) in.readObject();
+		        			
+		        			System.out.println("RECV: " + response11);
+		        			 
+		                    
+		        			out.write(encryptedKey);
+		                    out.flush();
+		                    System.out.println("SENT: Encryption key ");
+		                    
+		        			FileInputStream Efis2 = new FileInputStream(encryptedFile);
+		                    while  ((bytesRead = Efis2.read(buffer)) > 0) {
+		                        out.write(buffer, 0, bytesRead);
+		                        out.flush();
+		                    }
+		                    System.out.println("SENT: Encrypted file ");
+		                    String response13 = (String) in.readObject();
+		        			
+		        			System.out.println("RECV: " + response13);
+		                    
+		        			Efis2.close();
+        				}
         			}catch(IOException e) {
         				System.err.println("Error communicating with server: " + e.getMessage());
         			} catch (ClassNotFoundException e) {

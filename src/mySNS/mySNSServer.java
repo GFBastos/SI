@@ -224,178 +224,193 @@ public class mySNSServer {
 					    
 					outStream.writeObject("File name received");
 					System.out.println("SENT: File name received");
+					
+					File encodedFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".cifrado");
+		    		File certificate = new File("Utilizadores/" + utentUsername + "/" + fileName + ".assinatura." + medicUsername);
+	    			File content = new File("Utilizadores/" + utentUsername + "/" + fileName + ".assinado");
+	    			File safeFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".seguro");
+	    			File keyFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".chave_secreta." + utentUsername);
+	    			
 					switch (action) {
 				    	case "-sc":
-				    		FileOutputStream kos = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".chave_secreta." + utentUsername);
-				    		FileOutputStream fos1 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".cifrado");
-				    		
-				    		byte[] encryptedKeyBuffer = new byte[1024];
-				    		int keyBytesRead = inStream.read(encryptedKeyBuffer); 
-				    		kos.write(encryptedKeyBuffer, 0, keyBytesRead);
-				    		kos.close();
-				    		System.out.println("RECV: Encrypted key");
-				    		
-				    		outStream.writeObject("Key received");
-				    		System.out.println("SENT: Key received");
-				    		
-				    		Long fileSize1 = (Long) inStream.readObject();
-						    System.out.println("RECV: File size");
-						      
-							outStream.writeObject("File size received");
-							System.out.println("SENT: File size received");
-				    		
-				    		long totalBytesRead1 = 0;  
-				    		
-						    while (totalBytesRead1 < fileSize1) {
-						    	bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize1 - totalBytesRead1));
-						    	if (bytesRead > 0) {
-							        fos1.write(buf, 0, bytesRead);
-							        fos1.flush();
-							        totalBytesRead1 += bytesRead;
-							    } else {
-							        break; 
-							    }
-							}
-						    System.out.println("RECV: Encrypted file");
-						    
-						    outStream.writeObject("File received");
-						    System.out.println("SENT: File received");
-						    
-						    fos1.close();
-
-						    
+				    		if(encodedFile.exists() || certificate.exists() || content.exists() || safeFile.exists() || keyFile.exists()) {
+				    			outStream.writeObject(false);
+				    		}else {
+				    			outStream.writeObject(true);
+				    			
+					    		FileOutputStream kos = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".chave_secreta." + utentUsername);
+					    		FileOutputStream fos1 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".cifrado");
+					    		
+					    		byte[] encryptedKeyBuffer = new byte[1024];
+					    		int keyBytesRead = inStream.read(encryptedKeyBuffer); 
+					    		kos.write(encryptedKeyBuffer, 0, keyBytesRead);
+					    		kos.close();
+					    		System.out.println("RECV: Encrypted key");
+					    		
+					    		outStream.writeObject("Key received");
+					    		System.out.println("SENT: Key received");
+					    		
+					    		Long fileSize1 = (Long) inStream.readObject();
+							    System.out.println("RECV: File size");
+							      
+								outStream.writeObject("File size received");
+								System.out.println("SENT: File size received");
+					    		
+					    		long totalBytesRead1 = 0;  
+					    		
+							    while (totalBytesRead1 < fileSize1) {
+							    	bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize1 - totalBytesRead1));
+							    	if (bytesRead > 0) {
+								        fos1.write(buf, 0, bytesRead);
+								        fos1.flush();
+								        totalBytesRead1 += bytesRead;
+								    } else {
+								        break; 
+								    }
+								}
+							    System.out.println("RECV: Encrypted file");
+							    
+							    outStream.writeObject("File received");
+							    System.out.println("SENT: File received");
+							    
+							    fos1.close();
+							    break;
+				    		}
 				    		break;
 				    	case "-sa":
-							
-							FileOutputStream fos2 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".assinatura." + medicUsername);
-							FileOutputStream fos3 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".assinado");
-						    
-							long fileSize2 = (Long) inStream.readObject(); 
-							long totalBytesRead2 = 0;
-							System.out.println(fileSize2);
-							System.out.println("RECV: File Size");
-						    
-						    outStream.writeObject("First File Size Received");
-						    System.out.println("SENT: First File Size Received");
-							
-							long fileSize3 = (Long) inStream.readObject();
-							System.out.println(fileSize3);
-							System.out.println("RECV: File Size");
+				    		if(encodedFile.exists() || certificate.exists() || content.exists() || safeFile.exists() || keyFile.exists()) {
+				    			outStream.writeObject(false);
+				    		}else {
+				    			outStream.writeObject(true);
+				    			
+								FileOutputStream fos2 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".assinatura." + medicUsername);
+								FileOutputStream fos3 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".assinado");
 							    
-						    outStream.writeObject("Second File Size Received");
-						    System.out.println("SENT: Second File Size Received");
-							
-							while (totalBytesRead2 < fileSize2) {
-							    bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize2 - totalBytesRead2));
-							    if (bytesRead > 0) {
-							        fos2.write(buf, 0, bytesRead);
-							        fos2.flush();
-							        totalBytesRead2 += bytesRead;
-							    } else {
-							        break; 
-							    }
-							}
-						    
-						    fos2.close();
-						    
-						    System.out.println("RECV: Signature");
-						    
-						    outStream.writeObject("Signature Received");
-						    System.out.println("SENT: Signature Received");
-						    
-						   
-							long totalBytesRead3 = 0;
-						    
-							while (totalBytesRead3 < fileSize3) {
-								bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize3 - totalBytesRead3));
-								if (bytesRead > 0) {
-							        fos3.write(buf, 0, bytesRead);
-							        fos3.flush();
-							        totalBytesRead3 += bytesRead;
-							    } else {
-							        break; // End of stream reached unexpectedly
-							    }
-							}
-
-						    fos3.close();
-							
-						    System.out.println("RECV: Signed File");
-						    
-						    outStream.writeObject("Signed File Received");
-						    System.out.println("SENT: Signed File Received");
-						    
+								long fileSize2 = (Long) inStream.readObject(); 
+								long totalBytesRead2 = 0;
+								System.out.println(fileSize2);
+								System.out.println("RECV: File Size");
+							    
+							    outStream.writeObject("First File Size Received");
+							    System.out.println("SENT: First File Size Received");
+								
+								long fileSize3 = (Long) inStream.readObject();
+								System.out.println(fileSize3);
+								System.out.println("RECV: File Size");
+								    
+							    outStream.writeObject("Second File Size Received");
+							    System.out.println("SENT: Second File Size Received");
+								
+								while (totalBytesRead2 < fileSize2) {
+								    bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize2 - totalBytesRead2));
+								    if (bytesRead > 0) {
+								        fos2.write(buf, 0, bytesRead);
+								        fos2.flush();
+								        totalBytesRead2 += bytesRead;
+								    } else {
+								        break; 
+								    }
+								}
+							    
+							    fos2.close();
+							    
+							    System.out.println("RECV: Signature");
+							    
+							    outStream.writeObject("Signature Received");
+							    System.out.println("SENT: Signature Received");
+							    
+							   
+								long totalBytesRead3 = 0;
+							    
+								while (totalBytesRead3 < fileSize3) {
+									bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize3 - totalBytesRead3));
+									if (bytesRead > 0) {
+								        fos3.write(buf, 0, bytesRead);
+								        fos3.flush();
+								        totalBytesRead3 += bytesRead;
+								    } else {
+								        break; // End of stream reached unexpectedly
+								    }
+								}
+	
+							    fos3.close();
+								
+							    System.out.println("RECV: Signed File");
+							    
+							    outStream.writeObject("Signed File Received");
+							    System.out.println("SENT: Signed File Received");
+							    break;
+				    		}
 			    			break;
 				    	case "-se":
-				    		
-				    		FileOutputStream fos4 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".assinatura." + medicUsername + ".seguro");
-				    		FileOutputStream fos5 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".chave_secreta." + utentUsername + ".seguro");
-				    		FileOutputStream fos6 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".seguro");
-				    		
-				    		long fileSize4 = (Long) inStream.readObject(); 
-							System.out.println("RECV: File Size");
-
-							outStream.writeObject("File Size Received");
-						    System.out.println("SENT: File Size Received");
-							
-							long fileSize6 = (Long) inStream.readObject(); 
-							System.out.println("RECV: File Size");
-							
-							outStream.writeObject("File Size Received");
-						    System.out.println("SENT: File Size Received");
-				    		
-							long totalBytesRead4 = 0;
-				    		
-						    while (totalBytesRead4 < fileSize4) {
-						    	bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize4 - totalBytesRead4));
-						    	if (bytesRead > 0) {
-								    fos4.write(buf, 0, bytesRead);
-								    fos4.flush();
-								    totalBytesRead4 += bytesRead;
-						    	} else {
-						    		break;
-						    	}
-							}
-						    fos4.close();
-						    
-						    System.out.println("RECV: Signature");
-				    		
-						    outStream.writeObject("Signature Received");
-						    System.out.println("SENT: Signature Received");
-						    
-				    		
-				    		byte[] encryptedKeyBuffer2 = new byte[1024];
-				    		int keyBytesRead2 = inStream.read(encryptedKeyBuffer2); 
-				    		fos5.write(encryptedKeyBuffer2, 0, keyBytesRead2);
-				    		fos5.close();
-				    		
-				    		long totalBytesRead6 = 0;
-						    while (totalBytesRead6 < fileSize6) {
-						    	bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize6 - totalBytesRead6));
-						    	if (bytesRead > 0) {
-						    		fos6.write(buf, 0, bytesRead);
-								    fos6.flush();
-								    totalBytesRead6 += bytesRead;
-						    	} else {
-						    		break;
-						    	}
-							}
-						    fos6.close();
-						    
-						    System.out.println("RECV: File");
-						    
-						    outStream.writeObject("File Received");
-						    System.out.println("SENT: File Received");
-						    
+				    		if(encodedFile.exists() || certificate.exists() || content.exists() || safeFile.exists() || keyFile.exists()) {
+				    			outStream.writeObject(false);
+				    		}else {
+				    			outStream.writeObject(true);
+				    			
+					    		FileOutputStream fos4 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".assinatura." + medicUsername + ".seguro");
+					    		FileOutputStream fos5 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".chave_secreta." + utentUsername + ".seguro");
+					    		FileOutputStream fos6 = new FileOutputStream("Utilizadores/" + utentUsername + "/" + fileName + ".seguro");
+					    		
+					    		long fileSize4 = (Long) inStream.readObject(); 
+								System.out.println("RECV: File Size");
+	
+								outStream.writeObject("File Size Received");
+							    System.out.println("SENT: File Size Received");
+								
+								long fileSize6 = (Long) inStream.readObject(); 
+								System.out.println("RECV: File Size");
+								
+								outStream.writeObject("File Size Received");
+							    System.out.println("SENT: File Size Received");
+					    		
+								long totalBytesRead4 = 0;
+					    		
+							    while (totalBytesRead4 < fileSize4) {
+							    	bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize4 - totalBytesRead4));
+							    	if (bytesRead > 0) {
+									    fos4.write(buf, 0, bytesRead);
+									    fos4.flush();
+									    totalBytesRead4 += bytesRead;
+							    	} else {
+							    		break;
+							    	}
+								}
+							    fos4.close();
+							    
+							    System.out.println("RECV: Signature");
+					    		
+							    outStream.writeObject("Signature Received");
+							    System.out.println("SENT: Signature Received");
+							    
+					    		
+					    		byte[] encryptedKeyBuffer2 = new byte[1024];
+					    		int keyBytesRead2 = inStream.read(encryptedKeyBuffer2); 
+					    		fos5.write(encryptedKeyBuffer2, 0, keyBytesRead2);
+					    		fos5.close();
+					    		
+					    		long totalBytesRead6 = 0;
+							    while (totalBytesRead6 < fileSize6) {
+							    	bytesRead = inStream.read(buf, 0, (int) Math.min(buf.length, fileSize6 - totalBytesRead6));
+							    	if (bytesRead > 0) {
+							    		fos6.write(buf, 0, bytesRead);
+									    fos6.flush();
+									    totalBytesRead6 += bytesRead;
+							    	} else {
+							    		break;
+							    	}
+								}
+							    fos6.close();
+							    
+							    System.out.println("RECV: File");
+							    
+							    outStream.writeObject("File Received");
+							    System.out.println("SENT: File Received");
+				    		}
 				    		break;
 				    		
 				    	case "-g":
 				    		
-				    		File encodedFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".cifrado");
-				    		File certificate = new File("Utilizadores/" + utentUsername + "/" + fileName + ".assinatura." + medicUsername);
-			    			File content = new File("Utilizadores/" + utentUsername + "/" + fileName + ".assinado");
-			    			File safeFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".seguro");
-			    			File keyFile = new File("Utilizadores/" + utentUsername + "/" + fileName + ".chave_secreta." + utentUsername);
-			    			
 			    			String request = null;
 
 			    			if(encodedFile.exists() && keyFile.exists()) {
