@@ -12,6 +12,10 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
+
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,7 +33,8 @@ public class mySNSServer {
 		ServerSocket sSoc = null;
         
 		try {
-			sSoc = new ServerSocket(23456);
+			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
+			sSoc = ssf.createServerSocket(23456);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
