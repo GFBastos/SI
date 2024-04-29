@@ -141,11 +141,11 @@ public class mySNSServer {
 			    		try {
 			    			
 				    		//New user name
-				    		String newUsername = (String) inStream.readObject();
-				    		System.out.println("RECV: username - " + newUsername);
+			    			utentUsername = (String) inStream.readObject();
+				    		System.out.println("RECV: username - " + utentUsername);
 						
-				    		outStream.writeObject("username - " + newUsername + " received");
-				    		System.out.println("SENT: username - " + newUsername + " received");
+				    		outStream.writeObject("username - " + utentUsername + " received");
+				    		System.out.println("SENT: username - " + utentUsername + " received");
 				    		
 				    		
 			    		}catch(IOException e) {
@@ -514,6 +514,7 @@ public class mySNSServer {
 				    		
 				    	case "-au":
 				    		try {
+				    			
 				    			Boolean found = usersPage.getInstance().checkName(utentUsername);
 					    		
 					    		if(!found) {
@@ -528,7 +529,7 @@ public class mySNSServer {
 									usersPage.getInstance().newUser(utentUsername, utentPassword);
 								    
 					    		
-						    		File cert = new File("utilizadores/" +  utentUsername + "/" + utentUsername + ".certificate");
+						    		File cert = new File("Certificados/" + utentUsername + ".cert.crt");
 						    		FileOutputStream cos = new FileOutputStream(cert);
 						    		
 						    		Long certificateSize = (Long) inStream.readObject();
