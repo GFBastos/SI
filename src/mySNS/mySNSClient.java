@@ -30,6 +30,8 @@ public class mySNSClient {
 		String serverAdress =args[1];
 		int serverPort = 23456;
 		try {
+			System.setProperty("javax.net.ssl.trustStore", "truststore.client");
+            System.setProperty("javax.net.ssl.trustStorePassword", "123456");
 			SocketFactory sf = SSLSocketFactory.getDefault();
 			socket = sf.createSocket(serverAdress, serverPort);
 		} catch (UnknownHostException e) {

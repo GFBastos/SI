@@ -33,6 +33,8 @@ public class mySNSServer {
 		ServerSocket sSoc = null;
         
 		try {
+			System.setProperty("javax.net.ssl.keyStore", "keystore.server");
+            System.setProperty("javax.net.ssl.keyStorePassword", "123456");
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			sSoc = ssf.createServerSocket(23456);
 		} catch (IOException e) {
