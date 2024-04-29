@@ -59,7 +59,8 @@ public class usersPage {
 		      // Read the file line by line
 		      while (scanner.hasNextLine()) {
 		        String line = scanner.nextLine();
-		        String currentLineName = line.split("//;")[0];
+		        String currentLineName = line.split(";")[0];
+		        System.out.println(currentLineName);
 		        if (currentLineName.equals(name)) {
 		          found = true;
 		          break; 

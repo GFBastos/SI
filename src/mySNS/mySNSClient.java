@@ -527,21 +527,26 @@ public class mySNSClient {
                         	out.writeObject(file.length());
                       	  	out.flush();
                       	  	System.out.println("SENT: " + file.length() + " as certificate size");
-
-                      	  	String response1 = (String) in.readObject();
-                      	  	System.out.println("RECV: " + response1);
                       	  	
+                      	  	Boolean found = (Boolean)in.readObject();
                       	  	
-                      	  	
-                      	  	while  ((bytesRead = certStream.read(buffer)) > 0) {
-                              out.write(buffer, 0, bytesRead);
-                              out.flush();
+                      	  	if(!found) {
+	                      	  	String response1 = (String) in.readObject();
+	                      	  	System.out.println("RECV: " + response1);
+	                      	  	
+	                      	  	while  ((bytesRead = certStream.read(buffer)) > 0) {
+	                              out.write(buffer, 0, bytesRead);
+	                              out.flush();
+	                      	  	}
+	                      	  	
+	                      	  	System.out.println("SENT: Certificate ");
+	              				String response11 = (String) in.readObject();
+	              			
+	              				System.out.println("RECV: " + response11);
+	              				certStream.close();
+                      	  	}else {
+                      	  		System.err.println("User with the specified name already exists.");
                       	  	}
-                      	  	System.out.println("SENT: Certificate ");
-              				String response11 = (String) in.readObject();
-              			
-              				System.out.println("RECV: " + response11);
-              				certStream.close();
                     	}
                     	else {
                     		throw new FileNotFoundException("File not found: " + file.getName());

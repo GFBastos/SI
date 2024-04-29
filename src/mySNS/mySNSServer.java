@@ -516,7 +516,9 @@ public class mySNSServer {
 				    		try {
 				    			
 				    			Boolean found = usersPage.getInstance().checkName(utentUsername);
-					    		
+				    			
+				    			outStream.writeObject(found);
+				    			
 					    		if(!found) {
 						    		
 						    		//New user folder
