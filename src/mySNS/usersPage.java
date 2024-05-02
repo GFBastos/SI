@@ -75,10 +75,6 @@ public class usersPage {
 		}
 	}
 	
-	public void calculateMac(String password) {
-		//TODO
-	}
-	
 	public Boolean authenticate(String name, String password) throws NoSuchAlgorithmException {
 		try (Scanner scanner = new Scanner(this.users)) {
 		      while (scanner.hasNextLine()) {

@@ -29,6 +29,9 @@ public class mySNSClient {
         Socket socket = null;
 		String serverAdress =args[1];
 		int serverPort = 23456;
+		boolean verified = false;
+		boolean existsUsersFile = false;
+		
 		try {
 			System.setProperty("javax.net.ssl.trustStore", "truststore.client");
             System.setProperty("javax.net.ssl.trustStorePassword", "123456");
@@ -53,23 +56,29 @@ public class mySNSClient {
 			System.err.println("Error communicating with server: " + e.getMessage());
 		}
 		try {
-			Boolean existsUsersFile = (Boolean) in.readObject();
-			System.out.println("RECV: " + existsUsersFile);
+			Scanner scanner = new Scanner(System.in);
+			System.out.print("Enter new admin password: ");
+			String password = scanner.nextLine();
+			
+			out.writeObject(password);
+		    System.out.println("SENT: password");
+
+		    String response = (String) in.readObject();
+		    System.out.println("RECV: " + response);
+			
+			existsUsersFile = (Boolean) in.readObject();
+			System.out.println("RECV: Exists user file: " + existsUsersFile);
 			
 			out.writeObject("received about users file");
 		    System.out.println("SENT: received about users file");
 			
-			if(!existsUsersFile) {
+		    if(existsUsersFile) {
+				verified = (boolean)in.readObject();
 				
-				Scanner scanner = new Scanner(System.in);
-				System.out.print("Enter new admin password: ");
-				String password = scanner.nextLine();
+				System.out.println("RECV: verification " + verified);
 				
-				out.writeObject(password);
-    		    System.out.println("SENT: password");
-
-    		    String response = (String) in.readObject();
-    		    System.out.println("RECV: " + response);
+				out.writeObject("Verification received");
+				System.out.println("SENT: Verification received");
 			}
 		}catch(IOException e) {
 			System.err.println("Error communicating with server: " + e.getMessage());
@@ -85,6 +94,17 @@ public class mySNSClient {
         String[] fileNames = null;
         String action = null;
         String password = null;
+        
+        //MAC VERIFICATION
+        if(!verified && existsUsersFile) {
+        	System.err.println("Error authenticating user");
+        	try {
+        		out.close();
+        		socket.close();
+        	}catch(IOException e) {
+        		System.err.println("Error communicating with server: " + e.getMessage());
+        	}
+        }
         
         switch (args[2]){
         	case "-m":
@@ -135,10 +155,27 @@ public class mySNSClient {
         			
         			action = "-au";
         			out.writeObject(action);
-        			System.out.println("SENT: -au");
+        			System.out.println("SENT: action flag -au");
         			
         			String response4 = (String) in.readObject();
         		    System.out.println("RECV: " + response4);
+        		    
+        		    boolean verification = (boolean) in.readObject();
+        		    System.out.println("RECV: verification " + verification);
+        		    
+        		    out.writeObject("received verification " + verification);
+        		    System.out.println("SENT: received verification " + verification);
+        		    
+        		    //MAC VERIFICATION
+        	        if(!verification) {
+        	        	System.err.println("Error authenticating user");
+        	        	try {
+        	        		out.close();
+        	        		socket.close();
+        	        	}catch(IOException e) {
+        	        		System.err.println("Error communicating with server: " + e.getMessage());
+        	        	}
+        	        }
         		    
         		    //Send the username
         		    out.writeObject(newUsername);

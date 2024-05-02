@@ -11,7 +11,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 public class writeMAC {
-	public void init(String pass) {
+	public static void init(String pass) {
 		try {
 			FileInputStream fis = new FileInputStream("users.txt");
 			FileOutputStream fos = new FileOutputStream("users.mac");

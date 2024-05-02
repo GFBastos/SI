@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 import javax.net.ServerSocketFactory;
@@ -71,39 +72,49 @@ public class mySNSServer {
 			try {
 				ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
+				String adminPassword = null;
 				
 				File usersFile = new File("users.txt");
+				
+				try {
+				adminPassword = (String) inStream.readObject();
+			    System.out.println("RECV: admin password");
+			    
+				outStream.writeObject("admin password received");
+				System.out.println("SENT: admin password received");
+				
 				if(!usersFile.exists()) {
-					try {
 					outStream.writeObject(false);
 					System.out.println("SENT: false");
 					
 					String response = (String) inStream.readObject();
 	    		    System.out.println("RECV: " + response);
 	    		    
-					usersPage users = usersPage.getInstance();
-					
-					String adminPassword = (String) inStream.readObject();
-				    System.out.println("RECV: admin password");
-				    
-					outStream.writeObject("admin password received");
-					System.out.println("SENT: admin password received");
-					
+	    		    usersPage users = usersPage.getInstance();
+	    		    
 					users.newUser("admin", adminPassword);
-					}catch(IOException e) {
-						System.err.println("Error communicating with server: " + e.getMessage());
-					} catch (NoSuchAlgorithmException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					
+					writeMAC.init(adminPassword);
 				}else {
 					outStream.writeObject(true);
 					System.out.println("SENT: true");
 					
-					String response = (String) inStream.readObject();
-	    		    System.out.println("RECV: " + response);
+					String response2 = (String) inStream.readObject();
+	    		    System.out.println("RECV: " + response2);
+	    		    
+	    		    boolean verified = verifyMAC.init(adminPassword);
+	    		    outStream.writeObject(verified);
+	    		    System.out.println("SENT: mac verification " + verified);
+	    		    
+	    		    String response = (String) inStream.readObject();
+				    System.out.println("RECV: " + response);
 				}
-				
+				}catch(IOException e) {
+					System.err.println("Error communicating with server: " + e.getMessage());
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				
 				String actionFlag = (String) inStream.readObject();
 			    System.out.println("RECV: action flag " + actionFlag);
@@ -138,20 +149,35 @@ public class mySNSServer {
 					    break;
 					    
 			    	case "-au":
-			    		try {
+			    		boolean verified = verifyMAC.init(adminPassword);
+			    		if(verified) {
+			    			outStream.writeObject(true);
+			    			System.out.println("SENT: mac verification true");
 			    			
-				    		//New user name
-			    			utentUsername = (String) inStream.readObject();
-				    		System.out.println("RECV: username - " + utentUsername);
-						
-				    		outStream.writeObject("username - " + utentUsername + " received");
-				    		System.out.println("SENT: username - " + utentUsername + " received");
+				    		try {
+				    			
+				    			String response = (String)inStream.readObject();
+								System.out.println("RECV: " + response);
+								
+					    		//New user name
+				    			utentUsername = (String) inStream.readObject();
+					    		System.out.println("RECV: username - " + utentUsername);
+							
+					    		outStream.writeObject("username - " + utentUsername + " received");
+					    		System.out.println("SENT: username - " + utentUsername + " received");
+					    		
+					    		
+				    		}catch(IOException e) {
+				    			System.err.println("Error communicating with server: " + e.getMessage());
 				    		
-				    		
-			    		}catch(IOException e) {
-			    			System.err.println("Error communicating with server: " + e.getMessage());
-			    		
-					    break;
+						    break;
+				    		}
+			    		}else {
+			    			outStream.writeObject(false);
+			    			System.out.println("SENT: mac verification false");
+			    			
+			    			String response = (String)inStream.readObject();
+							System.out.println("RECV: " + response);
 			    		}
 			    }
 			    utentPassword = (String) inStream.readObject();
@@ -576,6 +602,12 @@ public class mySNSServer {
 				    
 				System.out.println("thread: depois de receber ficheiros");
 			}catch (ClassNotFoundException | IOException e1) {
+				e1.printStackTrace();
+			} catch (InvalidKeyException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (NoSuchAlgorithmException e1) {
+				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 

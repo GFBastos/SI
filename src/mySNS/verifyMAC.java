@@ -11,7 +11,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 public class verifyMAC {
-	public Boolean init(String pass) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
+	public static Boolean init(String pass) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
 		try {
 			FileInputStream fis = new FileInputStream("users.txt");
 			FileInputStream fisMAC = new FileInputStream("users.mac");
@@ -42,11 +42,9 @@ public class verifyMAC {
 			String b_macToBeVerified = Base64.getEncoder().encodeToString(macToBeVerified);
 			
 			if(sMAC.equals(b_macToBeVerified)) {
-				System.out.println("Ok");
 				return true;
 			}
 			
-			System.out.println("Nok");
 			return false;
 			
 		}catch(IOException e) {
