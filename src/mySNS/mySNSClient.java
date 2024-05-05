@@ -134,7 +134,6 @@ public class mySNSClient {
 
         	case "-u":
         		try {
-        			action = args[8];
         			utentUsername = args[3];
 	    		    out.writeObject("-u");
 	    		    System.out.println("SENT: -u");
