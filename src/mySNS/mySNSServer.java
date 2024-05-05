@@ -13,6 +13,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -36,6 +37,8 @@ public class mySNSServer {
 		try {
 			System.setProperty("javax.net.ssl.keyStore", "keystore.server");
             System.setProperty("javax.net.ssl.keyStorePassword", "123456");
+
+            
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			sSoc = ssf.createServerSocket(23456);
 		} catch (IOException e) {
@@ -62,7 +65,7 @@ public class mySNSServer {
 	class ServerThread extends Thread {
 
 		private Socket socket = null;
-
+		private String adminPassword = null;
 		ServerThread(Socket inSoc) {
 			socket = inSoc;
 			System.out.println("thread do server para cada cliente");
@@ -70,47 +73,56 @@ public class mySNSServer {
  
 		public void run(){
 			try {
+				
 				ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
-				String adminPassword = null;
+				
+				if (adminPassword == null) {
+					Scanner scanner = new Scanner(System.in);
+					System.out.print("Enter new admin password: ");
+					adminPassword = scanner.nextLine();
+					System.out.println(adminPassword);
+				}
+				
 				
 				File usersFile = new File("users.txt");
 				
 				try {
-				adminPassword = (String) inStream.readObject();
-			    System.out.println("RECV: admin password");
-			    
-				outStream.writeObject("admin password received");
-				System.out.println("SENT: admin password received");
-				
-				if(!usersFile.exists()) {
-					outStream.writeObject(false);
-					System.out.println("SENT: false");
 					
-					String response = (String) inStream.readObject();
-	    		    System.out.println("RECV: " + response);
-	    		    
-	    		    usersPage users = usersPage.getInstance();
-	    		    
-					users.newUser("admin", adminPassword);
-					
-					writeMAC.init(adminPassword);
-				}else {
-					outStream.writeObject(true);
-					System.out.println("SENT: true");
-					
-					String response2 = (String) inStream.readObject();
-	    		    System.out.println("RECV: " + response2);
-	    		    
-	    		    boolean verified = verifyMAC.init(adminPassword);
-	    		    outStream.writeObject(verified);
-	    		    System.out.println("SENT: mac verification " + verified);
-	    		    
-	    		    String response = (String) inStream.readObject();
-				    System.out.println("RECV: " + response);
-				}
+				    System.out.println("RECV: admin password");
+				    
+					//outStream.writeObject("admin password received");
+					//System.out.println("SENT: admin password received");
+					System.out.println("estou aqui");
+					if(!usersFile.exists()) {
+						
+						outStream.writeObject(false);
+						System.out.println("SENT: false");
+						
+						String response = (String) inStream.readObject();
+		    		    System.out.println("RECV: " + response);
+		    		    
+		    		    usersPage users = usersPage.getInstance();
+		    		    
+						users.newUser("admin", adminPassword);
+
+						writeMAC.init(adminPassword);
+					}else {
+						outStream.writeObject(true);
+						System.out.println("SENT: true");
+						
+						String response2 = (String) inStream.readObject();
+		    		    System.out.println("RECV: " + response2);
+		    		    
+		    		    boolean verified = verifyMAC.init(adminPassword);
+		    		    outStream.writeObject(verified);
+		    		    System.out.println("SENT: mac verification " + verified);
+		    		    
+		    		    String response = (String) inStream.readObject();
+					    System.out.println("RECV: " + response);
+					}
 				}catch(IOException e) {
-					System.err.println("Error communicating with server: " + e.getMessage());
+						System.err.println("Error communicating with server: " + e.getMessage());
 				} catch (NoSuchAlgorithmException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -581,6 +593,11 @@ public class mySNSServer {
 									        break; 
 									    }
 									}
+								    writeMAC.init(adminPassword);
+								    
+								    outStream.writeObject("Certificate received");
+									System.out.println("SENT: Certificate received");
+								    
 								    cos.close();
 					    		}else {
 									System.err.println("User with same username already exists!");

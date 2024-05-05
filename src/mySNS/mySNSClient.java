@@ -56,7 +56,7 @@ public class mySNSClient {
 			System.err.println("Error communicating with server: " + e.getMessage());
 		}
 		try {
-			Scanner scanner = new Scanner(System.in);
+			/*Scanner scanner = new Scanner(System.in);
 			System.out.print("Enter new admin password: ");
 			String password = scanner.nextLine();
 			
@@ -65,7 +65,7 @@ public class mySNSClient {
 
 		    String response = (String) in.readObject();
 		    System.out.println("RECV: " + response);
-			
+			*/
 			existsUsersFile = (Boolean) in.readObject();
 			System.out.println("RECV: Exists user file: " + existsUsersFile);
 			
@@ -109,27 +109,29 @@ public class mySNSClient {
         switch (args[2]){
         	case "-m":
         		  try {
-        		    medicUsername = args[3];
-        		    out.writeObject("-m");
-        		    System.out.println("SENT: -m");
+        			  action = args[8];
+        			  medicUsername = args[3];
+        			  out.writeObject("-m");
+        			  System.out.println("SENT: -m");
 
-        		    String response1 = (String) in.readObject();
-        		    System.out.println("RECV: " + response1);
+        			  String response1 = (String) in.readObject();
+        			  System.out.println("RECV: " + response1);
 
-        		    out.writeObject(medicUsername);
-        		    System.out.println("SENT: medic username");
+        			  out.writeObject(medicUsername);
+        			  System.out.println("SENT: medic username");
 
-        		    String response2 = (String) in.readObject();
-        		    System.out.println("RECV: " + response2);
+        			  String response2 = (String) in.readObject();
+        			  System.out.println("RECV: " + response2);
         		  } catch (IOException e) {
-        		    System.err.println("Error communicating with server: " + e.getMessage());
+        			  System.err.println("Error communicating with server: " + e.getMessage());
         		  } catch (ClassNotFoundException e) {
-        		    System.err.println("Error reading response: " + e.getMessage());
+        			  System.err.println("Error reading response: " + e.getMessage());
         		  }
         		  break;
 
         	case "-u":
         		try {
+        			action = args[8];
         			utentUsername = args[3];
 	    		    out.writeObject("-u");
 	    		    System.out.println("SENT: -u");
@@ -251,7 +253,6 @@ public class mySNSClient {
         		}
         		break;
         	}
-        
         if (!action.equals("-g") && !action.equals("-au")) {
         	try {
         		  action = args[8]; 
@@ -276,7 +277,7 @@ public class mySNSClient {
         
         
         ArrayList<File> fileList = new ArrayList<File>();
-    
+        System.out.println(fileNames);
         for (String fileName : fileNames) {
         	File file = new File(fileName);
            
@@ -529,6 +530,7 @@ public class mySNSClient {
 						    System.out.println("SENT: File Size Received");
 						    
 						    
+
 						    
 						    long totalBytesRead1 = 0;
 						    
