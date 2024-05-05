@@ -36,7 +36,7 @@ public class Cifra {
 		    fos = new FileOutputStream(file.getName() + extension);
 		
 		    cos = new CipherOutputStream(fos, c);
-		    byte[] b = new byte[16];  
+		    byte[] b = new byte[128];  
 		    int i = fis.read(b);
 		    while (i != -1) {
 		        cos.write(b, 0, i);
@@ -79,7 +79,7 @@ public class Cifra {
 		    FileOutputStream decryptedFileOutputStream = new FileOutputStream("decrypted_" + fileNames[0] + "." + fileNames[1]);
 		    CipherInputStream cis = new CipherInputStream(encryptedFileInputStream, c);
 		    
-		    byte[] buffer = new byte[16];
+		    byte[] buffer = new byte[128];
 		    int bytesRead;
 		    while ((bytesRead = cis.read(buffer)) > 0) {
 		    	System.out.println(bytesRead);
