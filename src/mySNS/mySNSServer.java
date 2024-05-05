@@ -12,7 +12,12 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.Scanner;
 
 import javax.net.ServerSocketFactory;
@@ -261,6 +266,40 @@ public class mySNSServer {
 						e.printStackTrace();
 					}
 				}
+				
+				if (medicUsername != null) {
+                    try {
+                        FileInputStream fis10 = new FileInputStream("Medicos/"+ medicUsername + ".keystore.jks");
+                        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+                        char[] password = "123456".toCharArray();
+                        ks.load(fis10, password);
+
+
+                        if (ks.containsAlias(utentUsername)) {
+                            System.out.println("Certificate is in the keystore.");
+                        } else {
+                            FileInputStream certInputStream = new FileInputStream("Certificados/" + utentUsername + ".cert.crt");
+                            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+                            Certificate cert = certificateFactory.generateCertificate(certInputStream);
+                            certInputStream.close();
+
+
+                            ks.setCertificateEntry(utentUsername, cert);
+
+
+                            try (FileOutputStream keyStoreOutputStream = new FileOutputStream("Medicos/"+ medicUsername + ".keystore.jks")) {
+                                ks.store(keyStoreOutputStream, "123456".toCharArray());
+                            }
+
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (CertificateException e) {
+                    	System.err.println("Certificate not found in the keystore.");
+					} catch (KeyStoreException e) {
+						System.err.println("Certificate not found in the keystore.");
+					}
+                }
 				
 				for (int i = 0; i < numFiles; i++) {
 					byte[] buf = new byte[1024];

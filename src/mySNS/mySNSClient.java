@@ -9,9 +9,12 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -277,7 +280,7 @@ public class mySNSClient {
         
         
         ArrayList<File> fileList = new ArrayList<File>();
-        System.out.println(fileNames);
+
         for (String fileName : fileNames) {
         	File file = new File(fileName);
            
@@ -316,6 +319,37 @@ public class mySNSClient {
 	        }catch(IOException e) {
 	        	System.err.println("Error communicating with server: " + e.getMessage());
 	        }
+        }
+        
+        if (medicUsername != null) {
+            try {
+                FileInputStream fis10 = new FileInputStream("../Medicos/"+ medicUsername + ".keystore.jks");
+                KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+                char[] password2 = "123456".toCharArray();
+                ks.load(fis10, password2);
+
+
+                if (ks.containsAlias(utentUsername)) {
+                    System.out.println("Certificate is in the keystore.");
+                } else {
+                    FileInputStream certInputStream = new FileInputStream("../Certificados/" + utentUsername + ".cert.crt");
+                    CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+                    Certificate cert = certificateFactory.generateCertificate(certInputStream);
+                    certInputStream.close();
+
+
+                    ks.setCertificateEntry(utentUsername, cert);
+
+
+                    try (FileOutputStream keyStoreOutputStream = new FileOutputStream("../Medicos/"+ medicUsername + ".keystore.jks")) {
+                        ks.store(keyStoreOutputStream, "123456".toCharArray());
+                    }
+
+                    System.out.println("Certificate not found in the keystore.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         
         for (File file :fileList) {
@@ -608,3 +642,5 @@ public class mySNSClient {
 		}
     }
 }
+
+
