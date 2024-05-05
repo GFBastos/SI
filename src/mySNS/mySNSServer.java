@@ -24,6 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 public class mySNSServer {
+	
+	private String adminPassword = null;
 
 	public static void main(String[] args) {
 		System.out.println("servidor: main");
@@ -41,6 +43,13 @@ public class mySNSServer {
             
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			sSoc = ssf.createServerSocket(23456);
+			
+			if (adminPassword == null) {
+				Scanner scanner = new Scanner(System.in);
+				System.out.print("Enter new admin password: ");
+				adminPassword = scanner.nextLine();
+				System.out.println(adminPassword);
+			}
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
@@ -65,7 +74,7 @@ public class mySNSServer {
 	class ServerThread extends Thread {
 
 		private Socket socket = null;
-		private String adminPassword = null;
+		
 		ServerThread(Socket inSoc) {
 			socket = inSoc;
 			System.out.println("thread do server para cada cliente");
@@ -76,14 +85,6 @@ public class mySNSServer {
 				
 				ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
-				
-				if (adminPassword == null) {
-					Scanner scanner = new Scanner(System.in);
-					System.out.print("Enter new admin password: ");
-					adminPassword = scanner.nextLine();
-					System.out.println(adminPassword);
-				}
-				
 				
 				File usersFile = new File("users.txt");
 				
