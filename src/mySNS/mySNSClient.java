@@ -407,6 +407,8 @@ public class mySNSClient {
 	            			
 	                		String response5 = (String) in.readObject();
 	        			    System.out.println("RECV: " + response5);
+        				}else {
+        					System.err.println("File already exists in the server");
         				}
         			} catch(IOException e) {
         				System.err.println("Error communicating with server: " + e.getMessage());
@@ -461,6 +463,8 @@ public class mySNSClient {
 		                    
 		                    String response9 = (String) in.readObject();
 		    			    System.out.println("RECV: " + response9);
+        				}else {
+        					System.err.println("File already exists in the server");
         				}
         			}catch(IOException e) {
         				System.err.println("Error communicating with server: " + e.getMessage());
@@ -522,6 +526,8 @@ public class mySNSClient {
 		        			System.out.println("RECV: " + response13);
 		                    
 		        			Efis2.close();
+        				}else {
+        					System.err.println("File already exists in the server");
         				}
         			}catch(IOException e) {
         				System.err.println("Error communicating with server: " + e.getMessage());
